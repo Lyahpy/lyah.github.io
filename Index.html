@@ -1,1 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Discord Profile </title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #202225;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .discord-card {
+            background-color: #18191c;
+            width: 350px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            position: relative;
+            border: 1px solid #2f3136;
+        }
+
+        .banner {
+            width: 100%;
+            height: 120px;
+            background-color: #2f3136;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .profile-section {
+            padding: 0 16px 16px 16px;
+            position: relative;
+        }
+
+        .avatar-container {
+            position: relative;
+            margin-top: -50px;
+            margin-bottom: 10px;
+            width: 80px;
+            height: 80px;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 6px solid #18191c;
+            background-color: #2f3136;
+        }
+
+        .status-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background-color: #747f8d;
+            border: 3px solid #18191c;
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+        }
+
+        .user-info {
+            background-color: #0f1011;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .display-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #f6f6f7;
+        }
+
+        .username {
+            font-size: 14px;
+            color: #b9bbbe;
+            margin-bottom: 12px;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: #2f3136;
+            margin: 12px 0;
+        }
+
+        .about-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: #b9bbbe;
+            margin-bottom: 6px;
+        }
+
+        .about-text {
+            font-size: 14px;
+            color: #dcddde;
+            line-height: 1.4;
+        }
+
+        .activity-box {
+            margin-top: 16px;
+            background-color: rgba(0,0,0,0.2);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .activity-header {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: #b9bbbe;
+            margin-bottom: 6px;
+        }
+
+        .activity-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #f6f6f7;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="discord-card">
+        <div class="banner" id="userBanner"></div>
+        <div class="profile-section">
+            <div class="avatar-container">
+                <img src="" alt="Avatar" class="avatar" id="userAvatar">
+                <div class="status-dot" id="userStatusDot"></div>
+            </div>
+            
+            <div class="display-name" id="userDisplayName">Carregando...</div>
+            <div class="username" id="userUsername">@carregando</div>
+
+            <div class="divider"></div>
+
+            <div class="about-title">Sobre mim</div>
+            <div class="about-text" id="userBio">Buscando informações do perfil...</div>
+
+            <div class="activity-box">
+                <div class="activity-header">Atividade</div>
+                <div class="activity-name" id="userActivity">Offline</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Substitua pelo seu ID de usuário real do Discord
+        const DISCORD_ID = "745147840556302396"; 
+
+        async function fetchDiscordProfile() {
+            try {
+                // Utiliza a API gratuita do Lanyard para buscar dados em tempo real
+                const response = await fetch(`https://lanyard.rest{DISCORD_ID}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const user = data.data.discord_user;
+                    const activity = data.data.activities[0];
+                    const status = data.data.discord_status;
+
+                    // Atualiza Nome, Nick e Bio
+                    document.getElementById("userDisplayName").innerText = user.display_name || user.username;
+                    document.getElementById("userUsername").innerText = `@${user.username}`;
+                    document.getElementById("userBio").innerText = data.data.kv.about || "Sem biografia definida.";
+
+                    // Atualiza Imagens (Avatar e Banner)
+                    const avatarHash = user.avatar;
+                    const avatarURL = `https://discordapp.com{DISCORD_ID}/${avatarHash}.${avatarHash.startsWith('a_') ? 'gif' : 'png'}?size=256`;
+                    document.getElementById("userAvatar").src = avatarURL;
+
+                    if (user.banner) {
+                        const bannerHash = user.banner;
+                        const bannerURL = `https://discordapp.com{DISCORD_ID}/${bannerHash}.${bannerHash.startsWith('a_') ? 'gif' : 'png'}?size=600`;
+                        document.getElementById("userBanner").style.backgroundImage = `url(${bannerURL})`;
+                    }
+
+                    // Atualiza bolinha de status
+                    const dot = document.getElementById("userStatusDot");
+                    if (status === "online") dot.style.backgroundColor = "#43b581";
+                    else if (status === "idle") dot.style.backgroundColor = "#faa81a";
+                    else if (status === "dnd") dot.style.backgroundColor = "#f04747";
+                    else dot.style.backgroundColor = "#747f8d";
+
+                    // Atualiza Atividade
+                    if (activity) {
+                        document.getElementById("userActivity").innerText = `Jogando ${activity.name}`;
+                    } else {
+                        document.getElementById("userActivity").innerText = "Não está jogando nada no momento.";
+                    }
+                }
+            } catch (error) {
+                console.error("Erro ao buscar dados do Discord:", error);
+            }
+        }
+
+        fetchDiscordProfile();
+    </script>
+</body>
+  </html>
 
